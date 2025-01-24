@@ -548,9 +548,9 @@ function TLPvtvPasProc.CellText(Column: TColumnIndex; TextType: TVSTTextType): S
 begin
   case Column of
     cNameCol: CellText := fPasProc.Name;
-    cClassCol: CellText := IfThen(TVirtualStringTree(fVst).Header.SortColumn in [1, 2, 3], '', fPasProc.NameOfClass);
-    cUnitCol: CellText := IfThen(TVirtualStringTree(fVst).Header.SortColumn in [1, 2, 3], '', fPasProc.UnitName);
-    cPackageCol: CellText := IfThen(TVirtualStringTree(fVst).Header.SortColumn in [1, 2, 3], '', IfThen(fPasProc.PackageName = '?', LazarusIDE.ActiveProject.Title, fPasProc.PackageName));
+    cClassCol: CellText := IfThen(TLazVirtualStringTree(fVst).Header.SortColumn in [1, 2, 3], '', fPasProc.NameOfClass);
+    cUnitCol: CellText := IfThen(TLazVirtualStringTree(fVst).Header.SortColumn in [1, 2, 3], '', fPasProc.UnitName);
+    cPackageCol: CellText := IfThen(TLazVirtualStringTree(fVst).Header.SortColumn in [1, 2, 3], '', IfThen(fPasProc.PackageName = '?', LazarusIDE.ActiveProject.Title, fPasProc.PackageName));
     cCountCol: CellText := fPasProc.CountStr;
     cPerNetCol: CellText := fPasProc.PerNetStr;
     cSumNetCol: CellText := fPasProc.SumNetStr;

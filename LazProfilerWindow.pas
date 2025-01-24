@@ -370,7 +370,7 @@ procedure TLazProfilerForm.VSTResize(Sender: TObject);
 var
   i, lSize, lMaxSize, lMinSize, lCalcSize: Integer;
 begin
-  with Sender as TVirtualStringTree do begin
+  with Sender as TLazVirtualStringTree do begin
     UpdateVerticalScrollBar(False);
     lSize := ClientRect.Right - ClientRect.Left;
     lMaxSize := 0;
@@ -419,7 +419,7 @@ procedure TLazProfilerForm.VSTStructureChange(Sender: TBaseVirtualTree; Node: PV
 var
   i, lNewColSize: Integer;
 begin
-  with Sender as TVirtualStringTree do begin
+  with Sender as TLazVirtualStringTree do begin
     for i := 0 to cColumnCount - 1 do begin
       lNewColSize := GetMaxColumnWidth(i);
       if lNewColSize < Header.Columns[i].MinWidth then
