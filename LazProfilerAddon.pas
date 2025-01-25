@@ -873,12 +873,19 @@ begin
   fActive := pActive;
   Screen.Cursor := crHourGlass;
   try
+    try
     if fActive then begin
       ParseSources(False);
     end;
     UpdateUI;
     if Assigned(ProfilerWindow) then
       ProfilerWindow.DataChanged := True;
+    except on E: EScannerError do
+    begin
+      fActive:=false;
+      raise;
+    end;
+    end;
   finally
     Screen.Cursor := crDefault;
   end;

@@ -41,11 +41,13 @@ type
   TLazProfilerForm = class(TForm)
     CBActive: TCheckBox;
     Icons: TImageList;
+    ErrorOutput: TMemo;
     PageControl: TPageControl;
     TabSheet1: TTabSheet;
     TabSheet2: TTabSheet;
     VST: TLazVirtualStringTree;
     procedure CBActiveChange(Sender: TObject);
+    procedure ErrorOutputChange(Sender: TObject);
     procedure VSTBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure VSTChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure VSTCollapsedExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
@@ -105,7 +107,8 @@ uses
   LazIDEIntf,
   LazLogger,
   LazProfilerAddon,
-  SrcEditorIntf;
+  SrcEditorIntf,
+  PScanner;
 
 var
   ProcClassComparer: TLPProcClassComparer;
@@ -242,7 +245,18 @@ end;
 
 procedure TLazProfilerForm.CBActiveChange(Sender: TObject);
 begin
-  Addon.Active := CBActive.Checked;
+  try
+    Addon.Active := CBActive.Checked;
+  except on E: EScannerError do
+  begin
+    ErrorOutput.Lines.Text:=E.Message;
+  end;
+  end;
+end;
+
+procedure TLazProfilerForm.ErrorOutputChange(Sender: TObject);
+begin
+
 end;
 
 procedure TLazProfilerForm.VSTCollapsedExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
