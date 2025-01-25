@@ -174,6 +174,7 @@ type
     function SaveEditorFile(Sender: TObject; aFile: TLazProjectFile; SaveStep: TSaveEditorFileStep; TargetFilename: string): TModalResult;
     procedure CreateProfilerWindow(Sender: TObject; pFormName: string; var pForm: TCustomForm; DoDisableAutoSizing: boolean);
     procedure UpdateUI;
+    procedure HandleAnyResource(Sender : TObject; const aFileName : String; aOptions : TStrings);
   public
     constructor Create;
     destructor Destroy; override;
@@ -989,10 +990,52 @@ begin
   end;
 end;
 
+type TIgnoringFileResolver = class(TFileResolver)
+  private
+    FLastFileName: string;
+  public
+    function FindResourceFileName(const AFileName: string): String; override;
+    function FindSourceFile(const AName: string): TLineReader; override;
+    function FindIncludeFile(const AName: string): TLineReader; override;
+end;
+
+function TIgnoringFileResolver.FindResourceFileName(const AFileName: string): String;
+begin
+  Result := inherited;
+  if Result = '' then
+  begin
+    if EndsStr('.res', AFileName) then Result := 'ignored';
+    if EndsStr('.lfm', AFileName) then Result := 'ignored';
+    if EndsStr('.lrs', AFileName) then Result := 'ignored';
+  end;
+  FLastFileName := Result;
+end;
+
+function TIgnoringFileResolver.FindSourceFile(const AName: string): TLineReader;
+begin
+  Result := inherited;
+  if Assigned(Result) then FLastFileName:=Result.Filename;
+end;
+
+function TIgnoringFileResolver.FindIncludeFile(const AName: string): TLineReader;
+var
+  FN: string;
+begin
+  Result := inherited;
+  if not Assigned(Result) then
+  begin
+    FN:=ConcatPaths([ExtractFileDir(FLastFileName),
+      StringReplace(AName, {$IFDEF WINDOWS}'/'{$ELSE}'\'{$ENDIF},
+        {$IFDEF WINDOWS}'\'{$ELSE}'/'{$ENDIF}, [rfReplaceAll])]);
+    if FileExists(FN) then
+      Result := TFileLineReader.Create(FN);
+  end;
+end;
+
 function TProfilerAddon.ParseSource(pFile: TLPFile; pInstrument: Boolean): Boolean;
 var
   lIncludeDirs: TStringList;
-  fr: TFileResolver;
+  fr: TIgnoringFileResolver;
   pas: TPascalScanner;
   token, lPart, lLastBlockToken, lToken: TToken;
   level, lProfilingChangeLevel, i: Integer;
@@ -1166,7 +1209,7 @@ begin
   Result := True;
   lCurFile := pFile;
   //DebugLn('  '+pFile.FileName);
-  fr := TFileResolver.Create;
+  fr := TIgnoringFileResolver.Create;
   lIncludeDirs := TStringList.Create;
   try
     lIncludeDirs.Delimiter := ';';
@@ -1180,6 +1223,7 @@ begin
     lIncludeDirs.Free;
   end;
   pas := TPascalScanner.Create(fr);
+  pas.RegisterResourceHandler(['.res', '.lfm'], @HandleAnyResource);
   pas.TokenOptions := [toOperatorToken];
   pas.AddDefine('fpc', true);
   lBlockStack := TBlocList.Create(False);
@@ -1657,6 +1701,12 @@ begin
     ProfilerWindow.Data := Nil;
   end;
   ProfilerWindow.CBActive.Checked := fActive;
+end;
+
+procedure TProfilerAddon.HandleAnyResource(Sender: TObject;
+  const aFileName: String; aOptions: TStrings);
+begin
+  DebugLn('LazProfiler: Ignoring resource '+aFileName);
 end;
 
 procedure TProfilerAddon.Start(Sender: TObject);
