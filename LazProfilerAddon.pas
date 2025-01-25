@@ -1572,7 +1572,13 @@ begin
   ) then begin
     //DebugLn('*** LazProfiler: ProjectClose');
     fNeedsRebuild := pfAlwaysBuild in AProject.Flags;
-    SaveXML(fTargetDir + fTargetName + cSettingExtension);
+    try
+      SaveXML(fTargetDir + fTargetName + cSettingExtension);
+    except on E: EStreamError do
+    begin
+      DebugLn('** LazProfiler: ProjectClose save xml error: '+E.Message);
+    end;
+    end;
   end;
   if Assigned(ProfilerWindow) then
     ProfilerWindow.Data := nil;

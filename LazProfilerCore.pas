@@ -1582,7 +1582,10 @@ begin
   else
     WriteLn('*** LazProfiler: fTicks='+IntToStr(fTicks));
   if fLoaded then
-    SaveXML(fName + cSettingExtension);
+    try
+      SaveXML(fName + cSettingExtension);
+    except on EStreamError do; //notching
+    end;
   DoneCriticalSection(fLock);
   inherited Destroy;
 end;
